@@ -31,10 +31,39 @@ class RiskGuardedOrderRouter:
         self.pkey = os.getenv("PRIVATE_KEY") or os.getenv("BASE_PRIVATE_KEY")
         self.funder = os.getenv("POLYMARKET_PROXY_ADDRESS", "0x53d5ba04d1ddaa7c9eb14d6e4b3896b15acbd88c")
         
-        # Local in-memory lock set to prevent duplicate position entries on the same prediction market token
-        self.executed_tokens = set()
+        # Persistent SQLite database lock to prevent duplicate position entries across process restarts
+        self.db_path = '/Users/apple/Documents/products/news-orderbook-arbitrage/executed_tokens.db'
+        self.executed_tokens = self.load_executed_tokens_db()
         self.client = None
         self.init_clob_client()
+
+    def load_executed_tokens_db(self) -> set:
+        import sqlite3
+        tokens = set()
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            cursor.execute("CREATE TABLE IF NOT EXISTS executed_tokens (token_id TEXT PRIMARY KEY, executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
+            conn.commit()
+            cursor.execute("SELECT token_id FROM executed_tokens")
+            rows = cursor.fetchall()
+            tokens = {r[0] for r in rows}
+            conn.close()
+            logger.info(f"🔒 Loaded {len(tokens)} executed tokens from persistent SQLite database.")
+        except Exception as e:
+            logger.error(f"Error loading executed tokens DB: {e}")
+        return tokens
+
+    def save_executed_token_db(self, token_id: str):
+        import sqlite3
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            cursor.execute("INSERT OR IGNORE INTO executed_tokens (token_id) VALUES (?)", (str(token_id).strip(),))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            logger.error(f"Error saving executed token to DB: {e}")
 
     def init_clob_client(self):
         try:
@@ -114,8 +143,9 @@ class RiskGuardedOrderRouter:
                 token_id=token_id
             )
             
-            # Register in executed tokens set to lock out duplicate entries
+            # Register in executed tokens set and SQLite DB to lock out duplicate entries permanently
             self.executed_tokens.add(token_str)
+            self.save_executed_token_db(token_str)
 
             resp = self.client.create_and_post_order(order_args)
             latency_ms = (time.perf_counter() - t0) * 1000.0
