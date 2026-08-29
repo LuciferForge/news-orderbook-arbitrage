@@ -1,0 +1,9 @@
+
+# Security & Secret Protections
+.env
+*.key
+*.pem
+*.db
+*.log
+__pycache__/
+node_modules/
