@@ -1,16 +1,7 @@
 {
-  "wallet_address": "0x53d5ba04d1ddaa7c9eb14d6e4b3896b15acbd88c",
-  "usdc_cash_balance": 29.17,
-  "daily_yield_roi_pct": 3.84,
-  "markets_scanned_24h": 300,
-  "high_conviction_entry_locks": 193,
-  "historical_win_rate_pct": 94.8,
-  "total_pipeline_latency_ms": 0.17,
-  "top_active_lock": {
-    "title": "Will Abdul El-Sayed win the 2026 MI Democratic Primary?",
-    "side": "YES",
-    "conviction_pct": 97.5,
-    "hours_remaining": 20.8,
-    "volume_usd": 730735
-  }
+  "status": "ONLINE",
+  "last_scan": "2026-09-01 08:02:53",
+  "events_scanned": 30,
+  "active_positions_usdc": 39.15,
+  "latency_ms": 142.5
 }

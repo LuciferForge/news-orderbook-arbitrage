@@ -1,1 +1,12 @@
-/Library/Frameworks/Python.framework/Versions/3.10/bin/python3: can't open file '/Users/apple/Documents/products/news-orderbook-arbitrage/polymarket_live_scanner.py': [Errno 2] No such file or directory
+2026-09-01 08:00:52,213 - INFO - 🔒 Loaded 0 executed tokens from persistent SQLite database.
+2026-09-01 08:00:52,244 - INFO - ✅ Polymarket CLOB V2 Client Initialized (Gnosis Safe Funder: 0x53d5ba04d1ddaa7c9eb14d6e4b3896b15acbd88c)
+2026-09-01 08:00:52,245 - INFO - ==================================================
+2026-09-01 08:00:52,245 - INFO -  🚀 POLYMARKET LIVE ARBITRAGE & PREDICTOR DAEMON ONLINE
+2026-09-01 08:00:52,245 - INFO - ==================================================
+2026-09-01 08:00:52,245 - INFO - • Position Limit: $2.50 USDC per market
+2026-09-01 08:00:52,245 - INFO - • Gnosis Safe Active Balance: $39.15 USDC
+2026-09-01 08:00:52,246 - INFO - • Sub-200ms SQLite Duplicate Protection: Active
+2026-09-01 08:00:52,246 - INFO - ==================================================
+2026-09-01 08:00:52,926 - INFO - 🔍 Polymarket Live Scan: Fetched 30 active events
+2026-09-01 08:01:53,450 - INFO - 🔍 Polymarket Live Scan: Fetched 30 active events
+2026-09-01 08:02:53,905 - INFO - 🔍 Polymarket Live Scan: Fetched 30 active events
