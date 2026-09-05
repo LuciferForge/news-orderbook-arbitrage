@@ -16,7 +16,7 @@ dotenv_path = '/Users/apple/Documents/Zero_fks/.env'
 load_dotenv(dotenv_path)
 
 from py_clob_client_v2.client import ClobClient
-from py_clob_client_v2.clob_types import ApiCreds, OrderArgsV2, OrderType, BalanceAllowanceParams, AssetType
+from py_clob_client_v2.clob_types import ApiCreds, OrderArgs, OrderType, AssetType, BalanceAllowanceParams, PartialCreateOrderOptions
 from py_clob_client_v2.constants import POLYGON
 
 logger = logging.getLogger("OrderRouterV2")
@@ -97,9 +97,9 @@ class RiskGuardedOrderRouter:
     def route_arbitrage_order(self, token_id: str, side: str, confidence: float) -> Tuple[bool, str, Dict[str, Any]]:
         t0 = time.perf_counter()
 
-        # 1. Confidence Threshold Guard (Must be >= 0.85)
-        if confidence < 0.85:
-            return False, f"Order Blocked: Confidence {confidence:.2f} < 0.85 Threshold", {"trade_size": 0.0}
+        # 1. Confidence Threshold Guard (Must be >= 0.65)
+        if confidence < 0.65:
+            return False, f"Order Blocked: Confidence {confidence:.2f} < 0.65 Threshold", {"trade_size": 0.0}
 
         if not self.client:
             return False, "Order Failed: CLOB V2 Client not initialized", {}
@@ -134,20 +134,30 @@ class RiskGuardedOrderRouter:
                 safe_trade_amount = min(live_bal, 2.50)
 
             price_target = 0.95 if side.upper() == "BUY" else 0.05
-            token_qty = round(safe_trade_amount / price_target, 2)
-            
-            order_args = OrderArgsV2(
+            raw_qty = round(safe_trade_amount / price_target, 2)
+            token_qty = max(raw_qty, 5.0) # Polymarket CLOB minimum order size is 5 shares
+
+            # Fetch V2 tick_size & neg_risk
+            try:
+                tick_size = self.client.get_tick_size(token_str)
+                neg_risk = self.client.get_neg_risk(token_str)
+            except Exception:
+                tick_size = "0.01"
+                neg_risk = False
+
+            options = PartialCreateOrderOptions(tick_size=str(tick_size), neg_risk=neg_risk)
+            order_args = OrderArgs(
                 price=price_target,
                 size=token_qty,
                 side=side.upper(),
-                token_id=token_id
+                token_id=token_str
             )
             
             # Register in executed tokens set and SQLite DB to lock out duplicate entries permanently
             self.executed_tokens.add(token_str)
             self.save_executed_token_db(token_str)
 
-            resp = self.client.create_and_post_order(order_args)
+            resp = self.client.create_and_post_order(order_args, options)
             latency_ms = (time.perf_counter() - t0) * 1000.0
             
             if resp.get("success"):
